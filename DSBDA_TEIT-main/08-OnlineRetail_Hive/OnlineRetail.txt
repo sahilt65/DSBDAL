@@ -1,0 +1,29 @@
+1. Create table OnlineRetail(
+	InvoiceNo Int,
+	StockCode String,
+	Description String,
+	Quantity Int,
+	InvoiceDate Date,
+	UnitPrice Double,
+	CustomerId Int,
+	Country String)
+	ROW FORMAT DELIMITED
+	FIELDS TERMINATED BY ','
+	STORED AS TEXTFILE;
+
+2. LOAD DATA LOCAL INPATH '/home/cloudera/Desktop/OnlineRetail.csv' INTO TABLE OnlineRetail;
+
+3. CREATE INDEX or_index
+	ON TABLE OnlineRetail(InvoiceNo)
+	AS 'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler'
+	WITH DEFERRED REBUILD;
+
+4. Select sum(Quantity*UnitPrice) as Total_Sale, avg(Quantity*UnitPrice) as Average_Sale from OnlineRetail;
+
+5. Select * from onlineRetail 
+	where (Quantity*UnitPrice) = (select max(Quantity*UnitPrice) as Maximum Cost from onlineRetail Group By InvoiceNo);
+
+6. Select CustomerId, sum(Quantity*UnitPrice) as orderTotal from OnlineRetail group by CustomerId order by orderTOtal desc limit 1;
+
+7. 
+	

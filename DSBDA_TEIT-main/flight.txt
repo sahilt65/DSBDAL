@@ -1,0 +1,100 @@
+
+
+create table :
+	
+hive> CREATE TABLE online_retail ( InvoiceNo STRING, StockCode STRING,Description STRING, Quantity INT,InvoiceDate STRING,UnitPrice FLOAT,CustomerID STRING,Country STRING)
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY ','
+    > LINES TERMINATED BY '\n'
+    > STORED AS TEXTFILE;
+
+
+load data into table from local storage:
+
+[cloudera@quickstart ~]$ hadoop fs -put /home/cloudera/Desktop/OnlineRetail.csv /user/hive/warehouse/
+
+hive> LOAD DATA INPATH 'hdfs://quickstart.cloudera:8020/user/hive/warehouse/OnlineRetail.csv' INTO TABLE online_retail;
+
+Q - J :
+	
+CREATE INDEX customer_idx ON TABLE online_retail(CustomerID) AS 'COMPACT' WITH DEFERRED REBUILD;
+
+ALTER INDEX customer_idx ON online_retail REBUILD;
+
+Q - K : Find the total, average sales in Hive
+
+hive> select SUM(quantity*unitprice) as total_sale from online_retail;
+hive> select avg(quantity*unitprice) as total_sale from online_retail;
+
+Q - L : Find Order details with maximum cost.
+	hive> select * from online_retail
+    > order by quantity*unitprice desc
+    > limit 1;
+
+Q - M : Find Customer details with maximum order total.
+	hive> select customerid ,sum(quantity*unitprice) as cst from online_retail
+    > group by customerid
+    > order by cst desc
+    > limit 1;
+
+Q - N : Find the Country with maximum and minimum sale.
+	hive> select country , sum(quantity*unitprice) as cst from online_retail 
+    > group by country
+    > order by cst desc
+    > limit 1;
+
+Q - O : Creating an external Hive table to connect to the HBase for OnlineRetail.
+
+hive> CREATE EXTERNAL TABLE online_retail_ ( InvoiceNo STRING,StockCode STRING,Description STRING,Quantity INT,InvoiceDate STRING,UnitPrice FLOAT,CustomerID STRING,Country STRING)
+    > STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+    > WITH SERDEPROPERTIES ("hbase.columns.mapping" = ":key,cc:StockCode,cc:Description,cc:Quantity,cc:InvoiceDate,cc:UnitPrice,cc:CustomerID,cc:Country")
+    > TBLPROPERTIES("hbase.table.name" = "online_retail_");
+
+
+
+
+Hbase:
+hbase(main):001:0> create table 'flight','finfo','fsch'
+NoMethodError: undefined method `table' for #<Object:0x5739e2f7>
+
+hbase(main):002:0> create 'flight','finfo','fsch'
+0 row(s) in 0.7150 seconds
+
+
+hive> CREATE INDEX hbasefltnew_index
+    > ON TABLE hbase_flight_new (delay)
+    > AS 'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler'
+    > WITH DEFERRED REBUILD;
+OK
+Time taken: 0.358 seconds
+hive> SHOW INDEX ON hbase_flight_new;
+OK
+hbasefltnew_index   	hbase_flight_new    	delay               	default__hbase_flight_new_hbasefltnew_index__	compact             	
+Time taken: 0.113 seconds, Fetched: 1 row(s)
+hive> 
+
+
+=> Hbase::Table - flight
+hbase(main):003:0> list
+TABLE                                                                                                                                                                                                                                        
+flight                                                                                                                                                                                                                                       
+1 row(s) in 0.0600 seconds
+
+=> ["flight"]
+hbase(main):004:0> put 'flight',1,'finfo:source','Mumbai'
+0 row(s) in 0.1450 seconds
+
+hbase(main):005:0> put 'flight',1,'finfo:dest','Jannat'
+0 row(s) in 0.0110 seconds
+
+hbase(main):006:0> put 'flight',1,'finfo:year','2050'
+0 row(s) in 0.0210 seconds
+
+hbase(main):007:0> put 'flight',1,'fsch:at','10:10 am'
+0 row(s) in 0.0080 seconds
+
+hbase(main):008:0> put 'flight',1,'fsch:dt','12:10 am'
+0 row(s) in 0.0050 seconds
+
+hbase(main):009:0> put 'flight',1,'fsch:delay_in_mins',22
+0 row(s) in 0.0060 seconds
