@@ -1,0 +1,64 @@
+import requests
+from bs4 import BeautifulSoup as bs
+import numpy as np
+import pandas as pd
+-------------------------------------------------------------
+headers = {
+    'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+}
+page = requests.get("https://www.amazon.in/Apple-iPhone-Pro-Max-256/product-reviews/B0CHX68YG9/ref=cm_cr_dp_d_show_all_btm?ie=UTF8&reviewerType=all_reviews", headers=headers)
+page
+-------------------------------------------------------------
+soup = bs(page.content, 'html.parser')
+print(soup.prettify())
+-------------------------------------------------------------
+names = soup.find_all(class_='a-profile-name')
+names
+cust_names = []
+for i in range(0, len(names)):
+    cust_names.append(names[i].get_text())
+cust_names
+-------------------------------------------------------------
+titles = soup.find_all(class_='review-title-content')
+titles
+-------------------------------------------------------------
+review_titles = []
+for i in range(0,len(titles)):
+    review_titles.append(titles[i].get_text())
+review_titles
+-------------------------------------------------------------
+review_titles[:] = [title.lstrip('5.0 out of 5 stars\n') for title in review_titles]
+review_titles[:] = [title.lstrip('4.0 out of 5 stars\n') for title in review_titles]
+review_titles[:] = [title.lstrip('1.0 out of 5 stars\n') for title in review_titles]
+review_titles[:] = [title.rstrip('\n') for title in review_titles]
+review_titles
+-------------------------------------------------------------
+ratings = soup.find_all(class_='review-rating')
+ratings
+
+review_ratings = []
+for i in range(0,len(ratings)):
+    review_ratings.append(ratings[i].get_text())
+review_ratings
+-------------------------------------------------------------
+description = soup.find_all(class_='review-text-content')
+description
+
+review_description = []
+for i in range(0,len(description)):
+    review_description.append(description[i].get_text())
+review_description
+-------------------------------------------------------------
+review_description[:] = [description.lstrip("\n") for description in review_description]
+review_description[:] = [description.rstrip('\n') for description in review_description]
+review_description
+-------------------------------------------------------------
+df = pd.DataFrame()
+df['Customer Name'] = cust_names[0:10]
+df['Review Title'] = review_titles[0:10]
+df['Ratings'] = review_ratings[0:10]
+df['Review Description'] = review_description[0:10]
+
+df
+
+df.to_csv('review.csv', index=False)

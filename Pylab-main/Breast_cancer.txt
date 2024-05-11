@@ -1,0 +1,23 @@
+import pandas as pd
+col=['age','workclass','fnlwgt','education','education-num','marital-status','occupation','relationship','race','sex','capital-gain','capital-loss','hours-per-week','native-country','target']
+data = pd.read_csv('Adult/adult.csv')
+data.columns = col
+data
+data.isnull().sum()
+import numpy as np
+(data.values==np.nan).sum()
+(data.values=='?').sum()
+data['sex'].unique()
+Subset_sex1 = data[data['sex']==' Male']
+Subset_sex1
+Subset_sex2 = data[data['sex']==' Female']
+Subset_sex2
+Merge_sex = pd.concat([Subset_sex1, Subset_sex2])
+Merge_sex
+Sort_age = data.sort_values('age')
+Sort_age
+data.T
+melt = pd.melt(data, id_vars=['workclass','education'], value_vars=['age', 'hours-per-week'],  var_name='Value_vars_name', value_name='Value')
+melt
+cast = pd.pivot_table(melt, index=['workclass', 'education'],  columns="Value_vars_name", values="Value")
+cast
